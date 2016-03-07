@@ -10,8 +10,8 @@ define(function (require) {
   // returns a properly formatted millisecond timestamp index constraint
   function msConstraint(comparison, value) {
     return {
-      [comparison]: timeValue(value),
-      format: 'epoch_millis'
+      [comparison]: timeValue(value)
+//      format: 'epoch_millis'
     };
   }
 
