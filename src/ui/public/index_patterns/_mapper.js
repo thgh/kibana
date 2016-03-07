@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { IndexPatternMissingIndices } from 'ui/errors';
 import _ from 'lodash';
 import moment from 'moment';
@@ -40,6 +41,73 @@ export default function MapperService(Private, Promise, es, config, kbnIndex) {
           type: 'index-pattern',
           id: id,
           _sourceInclude: ['fields']
+=======
+define(function (require) {
+  return function MapperService(Private, Promise, es, config, kbnIndex) {
+    var _ = require('lodash');
+    var moment = require('moment');
+
+    var IndexPatternMissingIndices = require('ui/errors').IndexPatternMissingIndices;
+    var transformMappingIntoFields = Private(require('ui/index_patterns/_transform_mapping_into_fields'));
+    var intervals = Private(require('ui/index_patterns/_intervals'));
+    var patternToWildcard = Private(require('ui/index_patterns/_pattern_to_wildcard'));
+
+    var LocalCache = Private(require('ui/index_patterns/_local_cache'));
+
+    function Mapper() {
+
+      // Save a reference to mapper
+      var self = this;
+
+      // proper-ish cache, keeps a clean copy of the object, only returns copies of it's copy
+      var fieldCache = self.cache = new LocalCache();
+
+      /**
+       * Gets an object containing all fields with their mappings
+       * @param {dataSource} dataSource
+       * @param {boolean} skipIndexPatternCache - should we ping the index-pattern objects
+       * @returns {Promise}
+       * @async
+       */
+      self.getFieldsForIndexPattern = function (indexPattern, skipIndexPatternCache) {
+        var id = indexPattern.id;
+
+        var cache = fieldCache.get(id);
+        if (cache) return Promise.resolve(cache);
+
+        if (!skipIndexPatternCache) {
+          return es.get({
+            index: kbnIndex,
+            type: 'index-pattern',
+            id: id,
+            _sourceInclude: ['fields']
+          })
+          .then(function (resp) {
+            if (resp.found && resp._source.fields) {
+              fieldCache.set(id, JSON.parse(resp._source.fields));
+            }
+            return self.getFieldsForIndexPattern(indexPattern, true);
+          });
+        }
+
+        var promise = Promise.resolve(id);
+        if (indexPattern.intervalName) {
+          promise = self.getIndicesForIndexPattern(indexPattern)
+          .then(function (existing) {
+            if (existing.matches.length === 0) throw new IndexPatternMissingIndices();
+            return existing.matches.slice(-config.get('indexPattern:fieldMapping:lookBack')); // Grab the most recent
+          });
+        }
+
+        return promise.then(function (indexList) {
+          return es.indices.getMapping({
+            index: indexList,
+            type: '*',
+            ignoreUnavailable: _.isArray(indexList),
+            allowNoIndices: false,
+            includeDefaults: true
+          });
+>>>>>>> ffc01fb... Nested query/aggregation support with query parser
         })
         .then(function (resp) {
           if (resp.found && resp._source.fields) {

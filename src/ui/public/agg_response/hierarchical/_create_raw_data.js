@@ -45,6 +45,7 @@ export default function (vis, resp) {
     return results;
   }
 
+<<<<<<< HEAD
   /**
    * Walk the buckets and create records for each leaf
    * @param {aggConfig} agg The aggConfig for the current level
@@ -56,15 +57,34 @@ export default function (vis, resp) {
     if (!_.isArray(record)) {
       record = [];
     }
+=======
+      // iterate through all the buckets
+      _.each(extractBuckets(data[agg.id] || data['nested_' + agg.id][agg.id]), function (bucket) {
+>>>>>>> ffc01fb... Nested query/aggregation support with query parser
 
     // iterate through all the buckets
     _.each(extractBuckets(data[agg.id], agg), function (bucket) {
 
+<<<<<<< HEAD
       var _record = _.flattenDeep([record, bucket.key]);
       _.each(metrics, function (metric) {
         var value = bucket.doc_count;
         if (bucket[metric.id] && !_.isUndefined(bucket[metric.id].value)) {
           value = bucket[metric.id].value;
+=======
+        // If there is another agg to call we need to check to see if it has
+        // buckets. If it does then we need to keep on walking the tree.
+        // This is where the recursion happens.
+        if (agg._next) {
+          var nextBucket = bucket[agg._next.id] || bucket['nested_' + agg._next.id][agg._next.id];
+          if (nextBucket && nextBucket.buckets) {
+            walkBuckets(agg._next, bucket, _record);
+          }
+        }
+        // if there are no more aggs to walk then  push the record to the rows.
+        else {
+          results.rows.push(_record);
+>>>>>>> ffc01fb... Nested query/aggregation support with query parser
         }
         _record.push(value);
       });
