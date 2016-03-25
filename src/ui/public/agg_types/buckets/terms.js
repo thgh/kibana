@@ -148,24 +148,19 @@ export default function TermsAggDefinition(Private) {
             return;
           }
 
-<<<<<<< HEAD
           if (orderAgg.type.name === 'count') {
             order._count = dir;
             return;
-=======
-            // if the target aggregation is nested, refer to it by its nested location
-            if (orderAgg.params.nested && (orderAgg.params.nested.path || orderAgg.params.nested.reverse)) {
-              orderAggId = 'nested_' + orderAggId + '>' + orderAggId;
-            }
-
-            output.subAggs = (output.subAggs || []).concat(orderAgg);
-            order[orderAggId] = dir;
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
           }
 
           var orderAggId = orderAgg.id;
           if (orderAgg.parentId) {
             orderAgg = vis.aggs.byId[orderAgg.parentId];
+          }
+
+          // if the target aggregation is nested, refer to it by its nested location
+          if (orderAgg.params.nested && (orderAgg.params.nested.path || orderAgg.params.nested.reverse)) {
+            orderAggId = 'nested_' + orderAggId + '>' + orderAggId;
           }
 
           output.subAggs = (output.subAggs || []).concat(orderAgg);

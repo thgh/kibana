@@ -24,25 +24,15 @@ export default function transformAggregationProvider(Private) {
         branch.parent = parent;
       }
 
-<<<<<<< HEAD
       // If the next bucket exists and it has children the we need to
       // transform it as well. This is where the recursion happens.
       if (agg._next) {
         var nextBucket = bucket[agg._next.id];
+        if (bucket['nested_' + agg._next.id] !== undefined) {
+          nextBucket = bucket['nested_' + agg._next.id][agg._next.id];
+        }
         if (nextBucket && nextBucket.buckets) {
           branch.children = transformAggregation(agg._next, metric, nextBucket, branch);
-=======
-        // If the next bucket exists and it has children the we need to
-        // transform it as well. This is where the recursion happens.
-        if (agg._next) {
-          var nextBucket = bucket[agg._next.id];
-          if (bucket['nested_' + agg._next.id] !== undefined) {
-            nextBucket = bucket['nested_' + agg._next.id][agg._next.id];
-          }
-          if (nextBucket && nextBucket.buckets) {
-            branch.children = transformAggregation(agg._next, metric, nextBucket, branch);
-          }
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
         }
       }
 

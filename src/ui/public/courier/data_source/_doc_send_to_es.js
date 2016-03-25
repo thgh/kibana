@@ -30,37 +30,20 @@ export default function (Promise, Private, es) {
     .then(function (resp) {
       if (resp.status === 409) throw new errors.VersionConflict(resp);
 
-<<<<<<< HEAD
       doc._storeVersion(resp._version);
       doc.id(resp._id);
-=======
-        var docFetchProm;
-        if (method !== 'index') {
-          docFetchProm = doc.fetch();
-        } else {
-          // we already know what the response will be
-          var id = body.title;
-          if (body.timeFieldName !== undefined) {
-            id = body.title + '(' + body.timeFieldName + ')';
-          }
-          docFetchProm = Promise.resolve({
-            _id: id,
-            _index: params.index,
-            _source: body,
-            _type: params.type,
-            _version: doc._getVersion(),
-            found: true
-          });
-        }
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
 
       let docFetchProm;
       if (method !== 'index') {
         docFetchProm = doc.fetch();
       } else {
         // we already know what the response will be
+        var id = body.title;
+        if (body.timeFieldName !== undefined) {
+          id = body.title + '(' + body.timeFieldName + ')';
+        }
         docFetchProm = Promise.resolve({
-          _id: resp._id,
+          _id: id,
           _index: params.index,
           _source: body,
           _type: params.type,

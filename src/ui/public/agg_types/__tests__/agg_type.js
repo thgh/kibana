@@ -133,8 +133,7 @@ describe('AggType Class', function () {
           });
 
           expect(aggType.params).to.be.an(AggParams);
-<<<<<<< HEAD:src/ui/public/agg_types/__tests__/agg_type.js
-          expect(aggType.params.length).to.be(2);
+          expect(aggType.params.length).to.be(3);
           expect(aggType.params[0].name).to.be('json');
           expect(aggType.params[1].name).to.be('customLabel');
         });
@@ -146,9 +145,6 @@ describe('AggType Class', function () {
           });
 
           expect(aggType.params.length).to.be(1);
-=======
-          expect(aggType.params.length).to.be(2); // nested is always appended
->>>>>>> ffc01fb... Nested query/aggregation support with query parser:src/ui/public/agg_types/__tests__/AggType.js
           expect(aggType.params[0].name).to.be('json');
         });
 
@@ -157,11 +153,7 @@ describe('AggType Class', function () {
             {name: 'one'},
             {name: 'two'}
           ];
-<<<<<<< HEAD:src/ui/public/agg_types/__tests__/agg_type.js
-          var paramLength = params.length + 2; // json and custom label are always appended
-=======
-          var paramLength = params.length + 2; // json and nested is always appended
->>>>>>> ffc01fb... Nested query/aggregation support with query parser:src/ui/public/agg_types/__tests__/AggType.js
+          var paramLength = params.length + 3; // json and custom label are always appended
 
           var aggType = new AggType({
             name: 'bucketeer',

@@ -33,44 +33,18 @@ export default function tabifyAggResponseProvider(Private, Notifier) {
   function collectBucket(write, bucket, key) {
     var agg = write.aggStack.shift();
 
-<<<<<<< HEAD
     switch (agg.schema.group) {
       case 'buckets':
         var buckets = new Buckets(bucket[agg.id]);
+        if (bucket['nested_' + agg.id] !== undefined) {
+          buckets = new Buckets(bucket['nested_' + agg.id][agg.id]);
+        }
         if (buckets.length) {
           var splitting = write.canSplit && agg.schema.name === 'split';
           if (splitting) {
             write.split(agg, buckets, function forEachBucket(subBucket, key) {
-              collectBucket(write, subBucket, agg.getKey(subBucket), key);
+              collectBucket(write, subBucket, agg.getKey(subBucket, key));
             });
-=======
-      switch (agg.schema.group) {
-        case 'buckets':
-          var buckets = new Buckets(bucket[agg.id]);
-          if (bucket['nested_' + agg.id] !== undefined) {
-            buckets = new Buckets(bucket['nested_' + agg.id][agg.id]);
-          }
-          if (buckets.length) {
-            var splitting = write.canSplit && agg.schema.name === 'split';
-            if (splitting) {
-              write.split(agg, buckets, function forEachBucket(subBucket, key) {
-                collectBucket(write, subBucket, agg.getKey(subBucket, key));
-              });
-            } else {
-              buckets.forEach(function (subBucket, key) {
-                write.cell(agg, agg.getKey(subBucket, key), function () {
-                  collectBucket(write, subBucket, agg.getKey(subBucket, key));
-                });
-              });
-            }
-          } else if (write.partialRows && write.metricsForAllBuckets && write.minimalColumns) {
-            // we don't have any buckets, but we do have metrics at this
-            // level, then pass all the empty buckets and jump back in for
-            // the metrics.
-            write.aggStack.unshift(agg);
-            passEmptyBuckets(write, bucket, key);
-            write.aggStack.shift();
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
           } else {
             buckets.forEach(function (subBucket, key) {
               write.cell(agg, agg.getKey(subBucket, key), function () {

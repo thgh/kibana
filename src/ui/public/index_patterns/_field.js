@@ -33,46 +33,31 @@ export default function FieldObjectProvider(Private, shortDotsFilter, $rootScope
 
     if (!type) type = fieldTypes.byName.unknown;
 
-<<<<<<< HEAD
     var format = spec.format;
     if (!format || !(format instanceof FieldFormat)) {
       format = indexPattern.fieldFormatMap[spec.name] || fieldFormats.getDefaultInstance(spec.type);
     }
-=======
-      var indexed = !!spec.indexed;
-      var scripted = !!spec.scripted;
-      var sortable = spec.name === '_score' || ((indexed || scripted) && type.sortable);
-      var bucketable = indexed || scripted;
-      var filterable = spec.name === '_id' || scripted || (indexed && type.filterable);
-      var nestedPath;
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
 
     var indexed = !!spec.indexed;
     var scripted = !!spec.scripted;
     var sortable = spec.name === '_score' || ((indexed || scripted) && type.sortable);
     var filterable = spec.name === '_id' || scripted || (indexed && type.filterable);
+    var nestedPath;
 
     obj.fact('name');
     obj.fact('type');
     obj.writ('count', spec.count || 0);
 
-<<<<<<< HEAD
     // scripted objs
     obj.fact('scripted', scripted);
     obj.writ('script', scripted ? spec.script : null);
     obj.writ('lang', scripted ? (spec.lang || 'expression') : null);
-=======
-      // mapping info
-      obj.fact('indexed', indexed);
-      obj.fact('analyzed', !!spec.analyzed);
-      obj.fact('doc_values', !!spec.doc_values);
-      obj.fact('nestedPath', nestedPath);
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
 
     // mapping info
     obj.fact('indexed', indexed);
     obj.fact('analyzed', !!spec.analyzed);
     obj.fact('doc_values', !!spec.doc_values);
+    obj.fact('nestedPath', nestedPath);
 
     // usage flags, read-only and won't be saved
     obj.comp('format', format);

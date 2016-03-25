@@ -316,7 +316,6 @@ export default function SourceAbstractFactory(Private, Promise, PromiseEmitter) 
         var translateToQuery = function (filter) {
           if (!filter) return;
 
-<<<<<<< HEAD
           if (filter.query) {
             return filter.query;
           }
@@ -342,59 +341,44 @@ export default function SourceAbstractFactory(Private, Promise, PromiseEmitter) 
               }
             });
 
-            flatState.body.query = {
-              bool: {
-                must: (
-                  [flatState.body.query].concat(
-                    (flatState.filters || [])
-                    .filter(filterNegate(false))
-                    .map(translateToQuery)
-                    .map(cleanFilter)
-                  )
-                ),
-                must_not: (
-                  (flatState.filters || [])
-                  .filter(filterNegate(true))
-                  .map(translateToQuery)
-                  .map(cleanFilter)
-                )
-              }
-            };
-=======
-              if (!flatState.index.nestedPath) {
-                flatState.body.query = {
-                  filtered: {
-                    query: flatState.body.query,
-                    filter: {
-                      bool: {
-                        must: _(flatState.filters).filter(filterNegate(false)).map(cleanFilter).value(),
-                        must_not: _(flatState.filters).filter(filterNegate(true)).map(cleanFilter).value()
-                      }
-                    }
-                  }
-                };
-              }
-              else {
-                flatState.body.query = {
-                  filtered: {
-                    query: flatState.body.query,
-                    filter: {
-                      nested: {
-                        path: flatState.index.nestedPath,
-                        filter: {
-                          bool: {
-                            must: _(flatState.filters).filter(filterNegate(false)).map(cleanFilter).value(),
-                            must_not: _(flatState.filters).filter(filterNegate(true)).map(cleanFilter).value()
-                          }
+            if (!flatState.index.nestedPath) {
+              flatState.body.query = {
+                filtered: {
+                  query: flatState.body.query,
+                  filter: {
+                    nested: {
+                      path: flatState.index.nestedPath,
+                      filter: {
+                        bool: {
+                          must: _(flatState.filters).filter(filterNegate(false)).map(cleanFilter).value(),
+                          must_not: _(flatState.filters).filter(filterNegate(true)).map(cleanFilter).value()
                         }
                       }
                     }
                   }
-                };
-              }
+                }
+              };
             }
-            delete flatState.filters;
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
+            else {
+              flatState.body.query = {
+                bool: {
+                  must: (
+                    [flatState.body.query].concat(
+                      (flatState.filters || [])
+                      .filter(filterNegate(false))
+                      .map(translateToQuery)
+                      .map(cleanFilter)
+                    )
+                  ),
+                  must_not: (
+                    (flatState.filters || [])
+                    .filter(filterNegate(true))
+                    .map(translateToQuery)
+                    .map(cleanFilter)
+                  )
+                }
+              };
+            }
           }
           delete flatState.filters;
         }

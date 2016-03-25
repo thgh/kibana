@@ -1,15 +1,8 @@
-<<<<<<< HEAD
 import angular from 'angular';
 import sinon from 'auto-release-sinon';
 import expect from 'expect.js';
 import ngMock from 'ng_mock';
-=======
-var angular = require('angular');
-var sinon = require('auto-release-sinon');
-var expect = require('expect.js');
-var ngMock = require('ngMock');
-var _ = require('lodash');
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
+import _ from 'lodash';
 
 // Load the kibana app dependencies.
 
@@ -24,17 +17,12 @@ let $elem;
 
 var cycleIndex = 0;
 var markup = '<input ng-model="mockModel" parse-query input-focus type="text">';
-<<<<<<< HEAD
 let fromUser;
+let tests;
+let fields;
 import toUser from 'ui/parse_query/lib/to_user';
 import 'ui/parse_query';
 import ParseQueryLibFromUserProvider from 'ui/parse_query/lib/from_user';
-=======
-var fromUser;
-var tests;
-var fields;
-var toUser = require('ui/parse_query/lib/to_user');
->>>>>>> ffc01fb... Nested query/aggregation support with query parser
 
 var init = function () {
   // Load the application
@@ -152,7 +140,7 @@ describe('Jison Query Parser', function () {
   describe('query tests', function () {
 
     beforeEach(function () {
-      fromUser = Private(require('ui/parse_query/lib/from_user'));
+      fromUser = Private(ParseQueryLibFromUserProvider);
       var testString = require('./test_queries.json');
       tests = require('./test_queries.json');
       fields = require('./test_fields.json');
@@ -161,7 +149,6 @@ describe('Jison Query Parser', function () {
 
     it('Each query test should pass', function () {
       _.forOwn(tests, function (test, k) {
-        console.log(k + ': ' + test.query + ' -> ' + test.result);
         expect(JSON.stringify(fromUser(test.query))).to.eql(JSON.stringify(JSON.parse(test.result)));
       });
     });
