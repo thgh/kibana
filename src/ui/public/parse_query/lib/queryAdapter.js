@@ -74,7 +74,7 @@ scope.Query = function (expression) {
 
 scope.Query.prototype = {
   toJson : function () {
-    return '{"query":' + this.expression.toJson() + '}';
+    return this.expression.toJson();
   }
 };
 
