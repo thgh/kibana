@@ -83,10 +83,12 @@
 ">"                   return 'GT'
 "<"                   return 'LT'
 "-"                    return 'DASH'
+"+"                    return 'PLUS'
 "AND"                  return 'AND'
 "OR"                  return 'OR'
 "NOT"                   return 'NOT'
 "NULL"                 return 'NULL'
+"now"	               return 'now'
 "ANY"                   return 'ANY'
 "*"                    return 'ANY'
 "IN"                   return 'IN'
@@ -94,11 +96,13 @@
 "EXISTS"                  return 'EXISTS'
 ("TRUE"|"true")                  return 'TRUE'
 ("FALSE"|"false")                  return 'FALSE'
+("y"|"M"|"w"|"d"|"h"|"m"|"s") return 'DTYPE'
 (?:[0-9]{1,3}\.){3}[0-9]{1,3}  return 'IPV4'
 T[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9](Z|\.[0-9]{3}Z) return 'TIME'
 [\-]{0,1}[0-9]+             return 'NUMBER'
 [\w]?\"(\\.|[^\\"])*\"    return 'STRING'
 [A-Za-z0-9_]+                   return 'FIELD'
+
 <<EOF>>               return 'EOF'
 
 
@@ -139,7 +143,32 @@ decimal
     : NUMBER DOT NUMBER
       { $$ = parseFloat($1 + "." + $3); }
     ;
+
+dateExp: date
+      { $$ = yy.moment.utc($1); }
+    | dateTime
+      { $$ = yy.moment.utc($1); }
+    | date OBRACK dateOffset CBRACK
+      { $$ = new yy.DateExp(yy.moment.utc($1), "||" + $3); }
+    | dateTime OBRACK dateOffset CBRACK
+      { $$ = new yy.DateExp(yy.moment.utc($1), "||" + $3); }
+    | NOW
+      { $$ = new yy.DateExp($1, ""); }
+    | NOW OBRACK dateOffset CBRACK
+      { $$ = new yy.DateExp($1, $3); }
+	;
+	
+dateOffset: dateOP 
+	| dateOffset COMMA dateOP 
+	  { $$ = $1 + $2 + $3; }
+	;
     
+dateOP: DASH NUMBER DTYPE
+	  {$$ = $1 + $2 + $3; }
+	| PLUS NUMBER DTYPE
+	  {$$ = $1 + $2 + $3; }
+	;
+
 dateTime
     : date TIME
       {$$ = $1 + $2; }
@@ -203,10 +232,7 @@ simpleValue
     | NUMBER 
       { $$ = parseInt($1); }
     | STRING | NULL | booleanValue | IPV4
-    | date
-      { $$ = yy.moment.utc($1); }
-    | dateTime
-      { $$ = yy.moment.utc($1); }
+    | dateExp
     ;
 
 operator
