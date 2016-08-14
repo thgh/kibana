@@ -8,7 +8,12 @@ define(function (require) {
      * contained in the index. This will build out full name paths and
      * detect nested paths for any child attributes.
      */
-    function defineMapping(fields, parentPath, name, rawField, nestedPath) {
+    function defineMapping(parent, fields, parentPath, name, rawField, nestedPath) {
+      var typeMap = { string : 'analyzed', long : 'not_analyzed', integer : 'not_analyzed',
+        short : 'not_analyzed', byte : 'not_analyzed', double : 'not_analyzed', float : 'not_analyzed',
+        date : 'not_analyzed', boolean : 'not_analyzed', geo_point : 'not_analyzed', geo_point : 'not_analyzed',
+        ip : 'not_analyzed', completion : 'not_analyzed', token_count : 'not_analyzed'
+      };
       var fullName = name;
       // build the fullName first
       if (parentPath !== undefined) {
@@ -24,7 +29,15 @@ define(function (require) {
           if (nestedPath !== undefined) {
             rawField.nestedPath = nestedPath;
           }
+          if (parent) {
+            rawField.parentType = parent.type;
+          }
           field.mapping = {};
+
+          if (!rawField.index && rawField.type in typeMap) {
+            rawField.index = typeMap[rawField.type];
+          }
+
           field.mapping[name] = rawField;
           field.fullName = fullName;
 
@@ -45,11 +58,11 @@ define(function (require) {
       }
 
       _.each(rawField.properties, function (field, name) {
-        defineMapping(fields, fullName, name, field, nestedPath);
+        defineMapping(parent, fields, fullName, name, field, nestedPath);
       });
 
       _.each(rawField.fields, function (field, name) {
-        defineMapping(fields, fullName, name, field, nestedPath);
+        defineMapping(parent, fields, fullName, name, field, nestedPath);
       });
 
     }
@@ -68,9 +81,10 @@ define(function (require) {
       _.each(response, function (index, indexName) {
         if (indexName === kbnIndex) return;
         _.each(index.mappings, function (mappings) {
+          var parent = mappings._parent;
           _.each(mappings.properties, function (field, name) {
             // call the define mapping recursive function
-            defineMapping(fields, undefined, name, field, undefined);
+            defineMapping(parent, fields, undefined, name, field, undefined);
           });
         });
       });

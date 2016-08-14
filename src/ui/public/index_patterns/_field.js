@@ -42,6 +42,7 @@ define(function (require) {
       var bucketable = indexed || scripted;
       var filterable = spec.name === '_id' || scripted || (indexed && type.filterable);
       var nestedPath;
+      var parentType;
 
       obj.fact('name');
       obj.fact('type');
@@ -57,6 +58,7 @@ define(function (require) {
       obj.fact('analyzed', !!spec.analyzed);
       obj.fact('doc_values', !!spec.doc_values);
       obj.fact('nestedPath', nestedPath);
+      obj.fact('parentType', parentType);
 
       // usage flags, read-only and won't be saved
       obj.comp('format', format);

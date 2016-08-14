@@ -32,7 +32,7 @@ define(function (require) {
         }
       };
 
-      if (mapping.index === 'no') {
+      if (!mapping.index || mapping.index === 'no') {
         // elasticsearch responds with false sometimes and 'no' others
         mapping.indexed = false;
       } else {
