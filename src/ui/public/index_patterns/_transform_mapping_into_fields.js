@@ -4,70 +4,6 @@ define(function (require) {
     var mapField = Private(require('ui/index_patterns/_map_field'));
 
     /**
-     * This function will recursively define all of the properties/mappings
-     * contained in the index. This will build out full name paths and
-     * detect nested paths for any child attributes.
-     */
-    function defineMapping(parent, fields, parentPath, name, rawField, nestedPath) {
-      var typeMap = { string : 'analyzed', long : 'not_analyzed', integer : 'not_analyzed',
-        short : 'not_analyzed', byte : 'not_analyzed', double : 'not_analyzed', float : 'not_analyzed',
-        date : 'not_analyzed', boolean : 'not_analyzed', geo_point : 'not_analyzed', geo_point : 'not_analyzed',
-        ip : 'not_analyzed', completion : 'not_analyzed', token_count : 'not_analyzed'
-      };
-      var fullName = name;
-      // build the fullName first
-      if (parentPath !== undefined) {
-        fullName = parentPath + '.' + name;
-      }
-
-      if (rawField.type !== undefined) {
-        var field = {};
-
-        if (rawField.type === 'nested') {
-          nestedPath = fullName;
-        } else {
-          if (nestedPath !== undefined) {
-            rawField.nestedPath = nestedPath;
-          }
-          if (parent) {
-            rawField.parentType = parent.type;
-          }
-          field.mapping = {};
-
-          if (!rawField.index && rawField.type in typeMap) {
-            rawField.index = typeMap[rawField.type];
-          }
-
-          field.mapping[name] = rawField;
-          field.fullName = fullName;
-
-          var keys = Object.keys(field.mapping);
-          if (keys.length === 0 || (fullName[0] === '_') && !_.contains(config.get('metaFields'), fullName)) return;
-
-          var mapping = mapField(field, fullName);
-
-          if (fields[fullName]) {
-            if (fields[fullName].type !== mapping.type) {
-              // conflict fields are not available for much except showing in the discover table
-              mapping.type = 'conflict';
-              mapping.indexed = false;
-            }
-          }
-          fields[fullName] = _.pick(mapping, 'type', 'indexed', 'analyzed', 'doc_values', 'nestedPath');
-        }
-      }
-
-      _.each(rawField.properties, function (field, name) {
-        defineMapping(parent, fields, fullName, name, field, nestedPath);
-      });
-
-      _.each(rawField.fields, function (field, name) {
-        defineMapping(parent, fields, fullName, name, field, nestedPath);
-      });
-
-    }
-
-    /**
      * Convert the ES response into the simple map for fields to
      * mappings which we will cache
      *
@@ -78,13 +14,27 @@ define(function (require) {
      */
     return function (response) {
       var fields = {};
-      _.each(response, function (index, indexName) {
+      _.each(response.fields, function (index, indexName) {
         if (indexName === kbnIndex) return;
         _.each(index.mappings, function (mappings) {
-          var parent = mappings._parent;
-          _.each(mappings.properties, function (field, name) {
-            // call the define mapping recursive function
-            defineMapping(parent, fields, undefined, name, field, undefined);
+          _.each(mappings, function (field, name) {
+            var keys = Object.keys(field.mapping);
+            var nestedKey = 'nestedPath';
+            if (keys.length === 0 || (name[0] === '_') && !_.contains(config.get('metaFields'), name)) return;
+
+            var mapping = mapField(field, name);
+
+            if (fields[name]) {
+              if (fields[name].type !== mapping.type) {
+                // conflict fields are not available for much except showing in the discover table
+                mapping.type = 'conflict';
+                mapping.indexed = false;
+              }
+            }
+            if (response.hierarchy[name]) {
+              mapping[nestedKey] = response.hierarchy[name];
+            }
+            fields[name] = _.pick(mapping, 'type', 'indexed', 'analyzed', 'doc_values', 'nestedPath');
           });
         });
       });

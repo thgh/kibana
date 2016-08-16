@@ -15,16 +15,21 @@ define(function (require) {
       // Save a reference to mapper
       var self = this;
 
-      // proper-ish cache, keeps a clean copy of the object, only returns copies of it's copy
+      // proper-ish cache, keeps a clean copy of the object, only returns
+		// copies of it's copy
       var fieldCache = self.cache = new LocalCache();
 
       /**
-       * Gets an object containing all fields with their mappings
-       * @param {dataSource} dataSource
-       * @param {boolean} skipIndexPatternCache - should we ping the index-pattern objects
-       * @returns {Promise}
-       * @async
-       */
+		 * Gets an object containing all fields with their mappings
+		 *
+		 * @param {dataSource}
+		 *            dataSource
+		 * @param {boolean}
+		 *            skipIndexPatternCache - should we ping the index-pattern
+		 *            objects
+		 * @returns {Promise}
+		 * @async
+		 */
       self.getFieldsForIndexPattern = function (indexPattern, skipIndexPatternCache) {
         var id = indexPattern.id;
 
@@ -51,7 +56,10 @@ define(function (require) {
           promise = self.getIndicesForIndexPattern(indexPattern)
           .then(function (existing) {
             if (existing.matches.length === 0) throw new IndexPatternMissingIndices();
-            return existing.matches.slice(-config.get('indexPattern:fieldMapping:lookBack')); // Grab the most recent
+            return existing.matches.slice(-config.get('indexPattern:fieldMapping:lookBack')); // Grab
+																								// the
+																								// most
+																								// recent
           });
         }
 
@@ -62,6 +70,30 @@ define(function (require) {
             ignoreUnavailable: _.isArray(indexList),
             allowNoIndices: false,
             includeDefaults: true
+          }).then(function (resp) {
+            return es.indices.getFieldMapping({
+              index: indexList,
+              field: '*',
+              ignoreUnavailable: _.isArray(indexList),
+              allowNoIndices: false,
+              includeDefaults: true
+            }).then(function (fields) {
+              var hierarchyPaths = {};
+              _.each(resp, function (index, indexName) {
+                if (indexName === kbnIndex) return;
+                _.each(index.mappings, function (mappings, typeName) {
+                  var parent = mappings._parent;
+                  _.each(mappings.properties, function (field, name) {
+                    // call the define mapping recursive function
+                    defineMapping(parent, hierarchyPaths, undefined, name, field, undefined);
+                  });
+                });
+              });
+              return {
+                hierarchy: hierarchyPaths,
+                fields: fields
+              };
+            });
           });
         })
         .catch(handleMissingIndexPattern)
@@ -105,15 +137,47 @@ define(function (require) {
       };
 
       /**
-       * Clears mapping caches from elasticsearch and from local object
-       * @param {dataSource} dataSource
-       * @returns {Promise}
-       * @async
-       */
+		 * Clears mapping caches from elasticsearch and from local object
+		 *
+		 * @param {dataSource}
+		 *            dataSource
+		 * @returns {Promise}
+		 * @async
+		 */
       self.clearCache = function (indexPattern) {
         fieldCache.clear(indexPattern);
         return Promise.resolve();
       };
+    }
+
+    /**
+	 * This function will recursively define all of the properties/mappings
+	 * contained in the index. This will build out full name paths and detect
+	 * nested paths for any child attributes.
+	 */
+    function defineMapping(parent, hierarchyPaths, parentPath, name, rawField, nestedPath) {
+      var fullName = name;
+      // build the fullName first
+      if (parentPath !== undefined) {
+        fullName = parentPath + '.' + name;
+      }
+
+      if (rawField.type !== undefined) {
+        if (rawField.type === 'nested') {
+          nestedPath = fullName;
+        }
+
+        hierarchyPaths[fullName] = nestedPath;
+      }
+
+      _.each(rawField.properties, function (field, name) {
+        defineMapping(parent, hierarchyPaths, fullName, name, field, nestedPath);
+      });
+
+      _.each(rawField.fields, function (field, name) {
+        defineMapping(parent, hierarchyPaths, fullName, name, field, nestedPath);
+      });
+
     }
 
     function handleMissingIndexPattern(err) {
