@@ -61,7 +61,8 @@ define(function (require) {
       } else {
         if (!esQueryStringPattern.test(text)) {
           try {
-            return JSON.parse(parser.parse(text).toJson());
+            var parsed = parser.parse(text).toJson();
+            return JSON.parse(parsed);
           } catch (e) {
             ngModel.parseError = e.message;
             return undefined;

@@ -32,13 +32,10 @@ function validateValue(mapping, value) {
         return value;
         break;
       case 'date':
-        if (!value._isAMomentObject && !(value instanceof scope.DateExp)) {
+        if (!value._isAMomentObject) {
           throw new scope.errors.InvalidValueForField(mapping.name, mapping.type, value);
         }
-        if (value.isAMomentObject) {
-          return value.valueOf();
-        }
-        return value.value;
+        return value.valueOf();
         break;
       case 'ip':
         return '"' + value + '"';
@@ -141,10 +138,6 @@ scope.Term = function (field, operation, value) {
   this.operation = operation;
   this.value = validateValue(mapping, value);
   this.nestedPath = (mapping ? mapping.nestedPath : undefined);
-};
-
-scope.DateExp = function (value, offset) {
-  this.value = '"' + value + offset + '"';
 };
 
 scope.Term.prototype = {
