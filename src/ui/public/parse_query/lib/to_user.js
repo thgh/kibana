@@ -23,6 +23,7 @@ define(function (require) {
         if (result === undefined) {
           return angular.toJson(text);
         }
+        return result;
       } catch (e) {
         return angular.toJson(text);
       }

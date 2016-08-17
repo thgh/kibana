@@ -7,9 +7,7 @@ define(function () {
   }
 
   QueryFormatter.formatQuery = function (jsonObject) {
-    if (jsonObject.query) {
-      return fromQuery(jsonObject.query);
-    }
+    return fromQuery(jsonObject);
   };
 
   function fromQuery(query) {
@@ -138,9 +136,16 @@ define(function () {
   }
 
   function valueToString(name, value) {
-    var field = QueryFormatter.fieldDictionary[name];
+    var field = QueryFormatter.fieldDictionary.byName[name];
     switch (field.type) {
       case 'date':
+        if (/now/i.test(value)) {
+          return value;
+        }
+        if (/\|\|/i.test(value)) {
+          var parts = value.split('||');
+          return moment(Number(parts[0])).utc().format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z||' + parts[1];
+        }
         return moment(value).utc().format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z';
         break;
       case 'string':
