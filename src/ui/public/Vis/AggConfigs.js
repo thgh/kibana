@@ -82,10 +82,13 @@ define(function (require) {
           }
         }
 
-        if (nestedPath !== undefined && nestedPath === prevNestedPath) {
-          nestedPath = undefined;
+        if (nestedPath !== undefined) {
+          if (nestedPath === prevNestedPath) {
+            nestedPath = undefined;
+          } else {
+            prevNestedPath = nestedPath;
+          }
         }
-        prevNestedPath = nestedPath;
         dsl = config.toDslNested(dslLvlCursor, nestedPath, reverseNested);
 
         var subAggs;
