@@ -97,12 +97,12 @@
 "EXISTS"                  return 'EXISTS'
 ("TRUE"|"true")                  return 'TRUE'
 ("FALSE"|"false")                  return 'FALSE'
-("y"|"M"|"w"|"d"|"h"|"m"|"s") return 'DTYPE'
 (?:[0-9]{1,3}\.){3}[0-9]{1,3}  return 'IPV4'
 T[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9](Z|\.[0-9]{3}Z) return 'TIME'
 [\-]{0,1}[0-9]+             return 'NUMBER'
 [\w]?\"(\\.|[^\\"])*\"    return 'STRING'
 [A-Za-z0-9_]+                   return 'FIELD'
+("-"|"+")[0-9]+("y"|"M"|"w"|"d"|"h"|"m"|"s") return 'DTYPE'
 
 <<EOF>>               return 'EOF'
 
@@ -149,6 +149,7 @@ dateExp: date
       { $$ = yy.moment.utc($1); }
     | dateTime
       { $$ = yy.moment.utc($1); }
+      /*
     | date BAR BAR dateOffset 
       { $$ = new yy.DateExp(yy.moment.utc($1), "||" + $4); }
     | dateTime BAR BAR dateOffset 
@@ -156,19 +157,16 @@ dateExp: date
     | now
       { $$ = new yy.DateExp($1, ""); }
     | now dateOffset
-      { $$ = new yy.DateExp($1, $2); }
+      { $$ = new yy.DateExp($1, $2); } */
 	;
-	
+/*	
 dateOffset: dateOP 
 	| dateOffset dateOP 
 	  { $$ = $1 + $2; }
 	;
     
-dateOP: DASH NUMBER DTYPE
-	  {$$ = $1 + $2 + $3; }
-	| PLUS NUMBER DTYPE
-	  {$$ = $1 + $2 + $3; }
-	;
+dateOP: DTYPE; 
+*/
 
 dateTime
     : date TIME
