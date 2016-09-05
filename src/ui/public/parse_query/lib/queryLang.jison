@@ -83,8 +83,8 @@
 "~="                   return 'LIKE'
 ">"                   return 'GT'
 "<"                   return 'LT'
-"-"                    return 'DASH'
-"+"                    return 'PLUS'
+[\-]{1}[0-9]+[yMwdhms]{1}              return 'NDTYPE'
+[+]{1}[0-9]+[yMwdhms]{1}              return 'PDTYPE'
 "AND"                  return 'AND'
 "OR"                  return 'OR'
 "NOT"                   return 'NOT'
@@ -98,11 +98,12 @@
 ("TRUE"|"true")                  return 'TRUE'
 ("FALSE"|"false")                  return 'FALSE'
 (?:[0-9]{1,3}\.){3}[0-9]{1,3}  return 'IPV4'
+\d{4}[-/\s]?((((0[13578])|(1[02]))[-/\s]?(([0-2][0-9])|(3[01])))|(((0[469])|(11))[-/\s]?(([0-2][0-9])|(30)))|(02[-/\s]?[0-2][0-9])) return 'DATE'
 T[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9](Z|\.[0-9]{3}Z) return 'TIME'
 [\-]{0,1}[0-9]+             return 'NUMBER'
 [\w]?\"(\\.|[^\\"])*\"    return 'STRING'
 [A-Za-z0-9_]+                   return 'FIELD'
-("-"|"+")[0-9]+("y"|"M"|"w"|"d"|"h"|"m"|"s") return 'DTYPE'
+"-"                    return 'DASH'
 
 <<EOF>>               return 'EOF'
 
@@ -145,31 +146,33 @@ decimal
       { $$ = parseFloat($1 + "." + $3); }
     ;
 
-dateExp: date
+dateExp: DATE
       { $$ = yy.moment.utc($1); }
     | dateTime
       { $$ = yy.moment.utc($1); }
-      /*
-    | date BAR BAR dateOffset 
+    | DATE BAR BAR dateOffset 
       { $$ = new yy.DateExp(yy.moment.utc($1), "||" + $4); }
     | dateTime BAR BAR dateOffset 
       { $$ = new yy.DateExp(yy.moment.utc($1), "||" + $4); }
     | now
       { $$ = new yy.DateExp($1, ""); }
     | now dateOffset
-      { $$ = new yy.DateExp($1, $2); } */
+      { $$ = new yy.DateExp($1, $2); }
 	;
-/*	
+	
 dateOffset: dateOP 
 	| dateOffset dateOP 
 	  { $$ = $1 + $2; }
 	;
     
-dateOP: DTYPE; 
-*/
+dateOP: NDTYPE
+	  {$$ = $1; }
+	| PDTYPE
+	  {$$ = $1; }
+	;
 
 dateTime
-    : date TIME
+    : DATE TIME
       {$$ = $1 + $2; }
     ;
 

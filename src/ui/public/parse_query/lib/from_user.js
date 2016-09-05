@@ -1,7 +1,7 @@
 define(function (require) {
   var _ = require('lodash');
   var jison = require('jison');
-  var esQueryStringPattern = /^[^"=]*:/;
+  var esQueryStringPattern = /^[^"=<>]*:/;
   var bnf = require('raw!./queryLang.jison');
   var ngModel;
   var parser = new jison.Parser(bnf, {
